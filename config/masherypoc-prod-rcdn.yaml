@@ -1,0 +1,96 @@
+kind: "Service"
+apiVersion: "v1"
+metadata:
+  name: "masherypoc-svc"
+spec:
+  ports:
+    -
+      name: "web"
+      protocol: "TCP"
+      port: 8080
+  selector:
+    name: "masherypoc"
+  type: "ClusterIP"
+  sessionAffinity: "None"
+---
+kind: "Deployment"
+apiVersion: "apps/v1beta1"
+metadata:
+  name: "masherypoc"
+spec:
+  template:
+    metadata:
+      labels:
+        name: "masherypoc"
+      annotations:
+        app_version: 'latest'
+    spec:
+      imagePullSecrets:
+        - 
+          name: "it-gats-it-architecture-mashery-masherypoc-read-gen-pull-secret"
+      containers:
+        -
+          name: "masherypoc"
+          image: "containers.cisco.com/it_gats_it_architecture/mashery_masherypoc:__IMAGETAG__"
+          ports:
+            -
+              containerPort: 8080
+              protocol: "TCP"
+          env:
+            -
+              name: "OPENSHIFT_APP_NAME"
+              value: "mashery-prd"
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 0.20
+
+          volumeMounts:
+            -
+              name: podinfo
+              mountPath: /etc/metadata
+              readOnly: false
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            capabilities: {}
+            privileged: false
+          #readinessProbe:
+          #  httpGet:
+          #    path: "/"
+          #    port: 8080
+          #  initialDelaySeconds: 15
+          #  timeoutSeconds: 1
+          #livenessProbe:
+          #  exec:
+          #    command:
+          #      - "/bin/true"
+          #  initialDelaySeconds: 15
+          #  timeoutSeconds: 1
+      volumes:
+        -
+          name: podinfo
+          downwardAPI:
+            items:
+              -
+                path: "labels"
+                fieldRef:
+                  fieldPath: metadata.labels
+              -
+                path: "annotations"
+                fieldRef:
+                  fieldPath: metadata.annotations
+        - name: "masherypoc"
+          emptydir: {}
+      restartPolicy: "Always"
+      dnsPolicy: "ClusterFirst"
+  replicas: 1
+  triggers:
+    -
+      type: "ConfigChange"
+  strategy:
+    type: "RollingUpdate"
+    rollingParams:
+      updatePeriodSeconds: 1
+      intervalSeconds: 1
+      timeoutSeconds: 300

@@ -1,0 +1,4 @@
+com\cisco\apix\Application.class
+com\cisco\apix\controller\HelloController.class
+com\cisco\apix\utils\CanonicalHostName.class
+com\cisco\apix\utils\WebConfig.class

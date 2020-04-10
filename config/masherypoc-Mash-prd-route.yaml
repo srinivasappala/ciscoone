@@ -1,0 +1,19 @@
+---
+kind: "Route"
+apiVersion: "v1"
+metadata:
+  name: "masherypoc"
+  labels:
+     component: "masherypoc-svc"
+  annotations: 
+    haproxy.router.openshift.io/timeout: 60s
+spec:
+   host: "masherycae.cisco.com"
+   to:
+     kind: "Service"
+     name: "masherypoc"
+   port:
+     targetPort: "web"
+   tls:
+     insecureEdgeTerminationPolicy: Allow
+     termination: edge
